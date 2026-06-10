@@ -37,14 +37,23 @@ def _save_samples(
     out_path: Path,
     n_samples: int = 4,
 ) -> None:
-    """첫 N개 sample을 (input, pred, target) 가로 비교로 저장."""
+    """첫 N개 sample을 (input, pred, target) 가로 비교로 저장.
+
+    Note: 모든 텐서를 CPU로 강제 이동하여 device 불일치 방지.
+    (val_dl에서 온 텐서는 CPU, model 출력은 cuda인 경우 cat 실패)
+    """
     import cv2
+
+    # device 불일치 방지 — 모두 CPU로 옮긴 후 처리
+    inputs = inputs.detach().cpu()
+    preds = preds.detach().cpu()
+    targets = targets.detach().cpu()
 
     n = min(n_samples, inputs.shape[0])
     rows = []
     for i in range(n):
         triple = torch.cat([inputs[i], preds[i], targets[i]], dim=2)  # (3, H, 3W)
-        img = ((triple.cpu().clamp(-1, 1) + 1.0) * 127.5).byte()
+        img = ((triple.clamp(-1, 1) + 1.0) * 127.5).byte()
         img = img.permute(1, 2, 0).numpy()
         rows.append(img)
     stacked = np.concatenate(rows, axis=0)
