@@ -1,0 +1,43 @@
+# Refinement Network 학습 설정 (Phase 7-B)
+# T4 Colab 기준 — 1~2 epoch로 PoC
+
+dataset:
+  mode: synthetic          # 'synthetic' | 'paired'
+  image_dir: /content/data/celebamask/images
+  paired_root: null         # mode=paired일 때만
+  subset_size: 500          # 빠른 PoC. 시간 남으면 2000으로
+  gaussian_sigma: 8.0
+  jpeg_quality: 60
+  size: 512
+  val_split_ratio: 0.1
+  seed: 0
+
+model:
+  encoder_name: resnet18
+  encoder_weights: imagenet
+  residual_scale: 0.5
+
+loss:
+  l1_weight: 1.0
+  perceptual_weight: 0.1
+  use_perceptual: true
+
+train:
+  batch_size: 8
+  epochs: 2                 # PoC: 2, 본 학습: 5
+  lr: 2.0e-4
+  weight_decay: 1.0e-5
+  num_workers: 2
+  grad_clip: 1.0
+
+early_stopping:
+  enabled: true
+  patience: 3
+  metric: val_l1            # 'val_l1' or 'val_total'
+
+output:
+  checkpoint_dir: project/refinement/checkpoints
+  log_interval: 20
+  save_best_only: true
+  sample_save_dir: project/refinement/samples
+  sample_every_epoch: true   # epoch마다 (input, pred, target) 비교 저장

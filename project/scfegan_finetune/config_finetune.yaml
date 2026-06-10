@@ -1,0 +1,32 @@
+# SC-FEGAN Fine-tuning 설정 (Phase 7-C1)
+# F1 방식: TF 2.x compat mode + tf-keras
+
+scfegan:
+  pretrained_ckpt: /content/drive/MyDrive/SC-FEGAN-ckpt/SC-FEGAN.ckpt
+  repo_dir: /content/SC-FEGAN
+  size: 512                        # SC-FEGAN 입력 고정
+
+dataset:
+  image_dir: /content/data/celebamask/images
+  subset_size: 2000               # plan_kim_0604_01 — balanced 선택
+  procedures: [nose_tip, double_eyelid, jaw_v_line]
+  intensity_range: [0.3, 0.8]
+  seed: 0
+
+train:
+  batch_size: 4                   # T4 메모리 제약
+  epochs: 3                       # catastrophic forgetting 방지
+  lr_g: 1.0e-5                    # G 보수적
+  lr_d: 1.0e-5                    # D 보수적
+  freeze_d: false                 # true면 G만 학습 (안전)
+  log_interval: 25
+
+output:
+  checkpoint_dir: /content/drive/MyDrive/cv-final-ckpts/scfegan_finetuned
+  save_every_epoch: true
+  sample_save_dir: /content/scfegan_samples
+
+fallback:
+  # 학습 실패 시 pretrained ckpt 그대로 사용
+  on_failure: use_pretrained
+  max_consecutive_skips: 100      # 랜드마크 실패 누적 시 중단

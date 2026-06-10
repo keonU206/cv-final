@@ -1,0 +1,59 @@
+# U-Net 학습 설정 (단일 진실 출처)
+# 변경 시 train.py 재시작만 필요 — 다른 파일 수정 불필요
+
+dataset:
+  name: limsanky/celebamask-hq-256
+  cache_dir: /content/data/celebamask
+  subset_size: 5000          # PoC: 5000, 본 학습: null (전체 사용)
+  val_split_ratio: 0.1       # subset의 10%를 val로
+
+classes:
+  num_classes: 6             # bg + 5 (skin은 후처리에서 jaw/forehead로 분리)
+  names: [background, nose, eye, mouth, skin, unused]
+
+train:
+  input_size: 256
+  batch_size: 16
+  epochs: 1                  # PoC. 본 학습 시 10으로 변경
+  lr: 1.0e-4
+  weight_decay: 1.0e-5
+  optimizer: adam
+  scheduler: cosine
+  num_workers: 2
+
+model:
+  encoder_name: resnet34
+  encoder_weights: imagenet
+  use_landmark: false        # true 시 4채널 입력 (RGB + heatmap)
+  # in_channels는 use_landmark에 따라 train.py에서 자동 계산 (false=3, true=4)
+  attention_type: null       # null (표준 U-Net) 또는 'scse' (Attention 강화)
+
+heatmap:
+  sigma: 3.0                 # Gaussian 반경 (픽셀)
+  # size는 train.input_size와 동일하게 사용됨
+
+loss:
+  dice_weight: 0.5
+  ce_weight: 0.5
+
+augmentation:
+  horizontal_flip: 0.5
+  rotation_deg: 15
+  brightness_contrast: 0.3
+  gaussian_blur: 0.2
+
+early_stopping:
+  enabled: true
+  patience: 5                # val_mIoU N epoch 동안 개선 없으면 중단
+  metric: miou               # 'miou' 또는 'loss'
+
+output:
+  checkpoint_dir: project/segmentation/checkpoints
+  log_interval: 50           # N step마다 loss 출력
+  save_every_epoch: false    # best만 저장하면 false
+  save_best_only: true       # val_best.pt만 유지
+
+landmark_cache:
+  enabled: true              # use_landmark=true 시 첫 실행에 캐시 빌드
+  path: /content/cv-final-cache/landmarks.pkl
+  build_time_warning_min: 15

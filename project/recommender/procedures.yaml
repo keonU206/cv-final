@@ -1,0 +1,55 @@
+# 시술 DB (v0.1 — Week 1 초안)
+# 임계값(trigger.threshold)은 Week 2에서 샘플 얼굴 통계로 보정 필요.
+# mask_landmarks는 MediaPipe Face Mesh 478 인덱스.
+# 견적은 2025 기준 한국 평균치 (출처: research.md 부록 A).
+
+- id: nose_tip
+  name_ko: "코끝 성형"
+  name_en: "Tip rhinoplasty"
+  region: nose
+  mask_landmarks: [1, 2, 4, 5, 19, 94, 98, 327, 326, 97]
+  dilate_px: 18
+  price_krw_min: 4000000
+  price_krw_max: 8000000
+  trigger:
+    metric: nose_tip_droop
+    op: gt
+    threshold: 0.02
+  description: "코끝이 콧방울보다 아래로 처져 보이는 경우"
+
+- id: double_eyelid
+  name_ko: "쌍커풀"
+  name_en: "Double eyelid surgery"
+  region: eye
+  # 양쪽 눈 윗꺼풀 영역 (왼쪽: 246~173, 오른쪽: 466~398)
+  mask_landmarks: [
+    246, 161, 160, 159, 158, 157, 173,
+    247, 30, 29, 27, 28, 56, 190,
+    466, 388, 387, 386, 385, 384, 398,
+    467, 260, 259, 257, 258, 286, 414
+  ]
+  dilate_px: 10
+  price_krw_min: 1100000
+  price_krw_max: 3400000
+  trigger:
+    metric: eyelid_height_ratio
+    op: lt
+    threshold: 0.18
+  description: "윗눈꺼풀이 좁게 보이는 경우"
+
+- id: jaw_v_line
+  name_ko: "사각턱 + V라인"
+  name_en: "Jaw reduction (V-line)"
+  region: jaw
+  mask_landmarks: [
+    172, 136, 150, 149, 176, 148, 152,
+    377, 400, 378, 379, 365, 397
+  ]
+  dilate_px: 25
+  price_krw_min: 6000000
+  price_krw_max: 18000000
+  trigger:
+    metric: jaw_angle_deg
+    op: gt
+    threshold: 118.0
+  description: "턱각이 둔각이라 사각턱으로 보이는 경우"

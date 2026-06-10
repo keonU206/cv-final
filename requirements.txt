@@ -1,0 +1,14 @@
+# 분석/추천/UI 환경용 (Python 3.10+)
+# SC-FEGAN(TF 1.13)은 별도 Colab 환경에서 동작 — notebooks/01_env_check.ipynb 참조
+
+mediapipe>=0.10.0
+opencv-python>=4.5
+numpy>=1.21
+pyyaml>=6.0
+streamlit>=1.30
+reportlab>=4.0
+Pillow>=10.0
+
+# 개발/테스트
+pytest>=7.0
+pytest-cov>=4.0

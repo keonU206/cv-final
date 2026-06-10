@@ -1,0 +1,75 @@
+# ─── Python ───
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# ─── Virtual envs ───
+.venv/
+venv/
+env/
+ENV/
+
+# ─── Jupyter ───
+.ipynb_checkpoints/
+
+# ─── IDE / OS ───
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# ─── Node (docs/presentation/) ───
+node_modules/
+package-lock.json
+
+# ─── 발표 자료 빌드 ───
+docs/presentation/preview/
+docs/presentation/external_preview/
+
+# ─── ML 학습 결과 (큰 파일) ───
+*.pt
+*.pth
+*.ckpt
+*.ckpt.*
+*.h5
+*.onnx
+*.tflite
+checkpoints/
+samples/
+outputs/
+
+# ─── 데이터 (Colab에서 자동 다운로드) ───
+data/
+datasets/
+*.csv
+!project/**/test*.csv
+
+# ─── 캐시 / 임시 파일 ───
+*.pkl
+cache/
+.cache/
+*.log
+*.tmp
+
+# ─── 비밀 정보 ───
+.env
+.env.*
+secrets.yaml
+credentials.json
+*.key
+
+# ─── SC-FEGAN (별도 repo — Colab에서 git clone) ───
+SC-FEGAN/
+
+# ─── conftest 외 임시 ───
+*.bak
+*~
