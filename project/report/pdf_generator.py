@@ -295,12 +295,16 @@ def generate_estimate_pdf(
 ) -> Path:
     """견적서 PDF 생성.
 
+    구조:
+    - 1페이지: 표지 + 시술 요약 표 + 합산 견적
+    - 2페이지~: 시술별 Before/After 큰 이미지 + 가격/설명 (시술당 1페이지)
+
     Args:
         items: EstimateItem 리스트.
         output_path: 출력 PDF 경로.
         patient_name: 환자 이름 (표지에 표시).
         consultation_date: 상담일 (기본 오늘).
-        include_images: True면 Before/After 이미지 페이지 포함.
+        include_images: True면 시술별 Before/After 페이지 포함.
         clinic_name: 클리닉 이름 (표지).
 
     Returns:
@@ -325,7 +329,7 @@ def generate_estimate_pdf(
     )
     story = []
 
-    # ─── 표지 ───
+    # ─── 1페이지: 표지 ───
     story.append(Paragraph(f"성형 시뮬레이션 견적서", styles["title"]))
     story.append(Paragraph(
         f"{clinic_name} · {consultation_date.strftime('%Y년 %m월 %d일')} · "
@@ -334,30 +338,50 @@ def generate_estimate_pdf(
     ))
     story.append(Spacer(1, 0.5*cm))
 
-    # ─── 시술 요약 표 ───
+    # ─── 1페이지: 시술 요약 표 ───
     story.append(Paragraph("1. 추천 시술 항목", styles["h1"]))
     story.append(_build_summary_table(items))
     story.append(Spacer(1, 0.4*cm))
 
-    # ─── 합산 견적 ───
+    # ─── 1페이지: 합산 견적 ───
     total_min = sum(it.price_min for it in items)
     total_max = sum(it.price_max for it in items)
     story.append(Paragraph("2. 합산 견적", styles["h1"]))
     story.append(_build_total_table(total_min, total_max))
-    story.append(Spacer(1, 0.4*cm))
 
-    # ─── Before/After 비교 ───
+    # ─── 2페이지~: 시술별 Before/After (각 시술 1페이지) ───
     if include_images and any(it.before_path or it.after_path for it in items):
-        story.append(PageBreak())
-        story.append(Paragraph("3. Before / After 시뮬레이션", styles["h1"]))
-        for it in items:
+        for idx, it in enumerate(items, start=1):
+            story.append(PageBreak())
+            # 시술 헤더
             story.append(Paragraph(
-                f"{it.name_ko} · {it.region}", styles["h2"],
+                f"3-{idx}. {it.name_ko} <font color='#7B8FA1' size='10'>"
+                f"· {it.name_en}</font>",
+                styles["h1"],
             ))
-            story.append(_build_image_comparison(it))
-            story.append(Spacer(1, 0.3*cm))
+            story.append(Paragraph(
+                f"<b>부위</b>: {it.region or '-'} &nbsp;&nbsp;&nbsp;"
+                f"<b>가격대</b>: <font color='#F96167'>{it.price_range_str()}</font>",
+                styles["body"],
+            ))
+            if it.description:
+                story.append(Paragraph(
+                    f"<b>설명</b>: {it.description}", styles["body"],
+                ))
+            story.append(Spacer(1, 0.4*cm))
 
-    # ─── 면책 푸터 ───
+            # Before/After 큰 이미지
+            story.append(_build_image_comparison(it, max_width_cm=8.0))
+
+            # 안내 캡션
+            story.append(Spacer(1, 0.3*cm))
+            story.append(Paragraph(
+                "※ After 이미지는 SC-FEGAN GAN 기반 AI 시뮬레이션 결과이며, "
+                "실제 시술 결과와 다를 수 있습니다.",
+                styles["muted"],
+            ))
+
+    # ─── 마지막 페이지: 면책 푸터 ───
     story.append(Spacer(1, 0.6*cm))
     story.append(Paragraph(
         "※ 본 견적은 SC-FEGAN 기반 AI 시뮬레이션으로 생성된 참고용 자료입니다. "
