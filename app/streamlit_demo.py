@@ -333,9 +333,10 @@ if mode.startswith("Pre"):
 # Live 모드 (사진 업로드)
 # ═══════════════════════════════════════
 else:
-    st.warning(
-        "⚠ **Live 모드** — SD Inpaint는 로컬 환경 제약으로 실시간 추론 X. "
-        "Refinement만 적용. 발표 데모는 Pre-generated 모드 권장."
+    st.info(
+        "ℹ **Live 모드** — 사진 업로드 + 랜드마크 추출 + Refinement 적용. "
+        "SD Inpaint 결과는 시술별 사전 생성 사례 이미지를 표시합니다 "
+        "(로컬 GPU 환경 제약으로 실시간 추론 X)."
     )
 
     col_left, col_right = st.columns([1, 1])
@@ -377,20 +378,38 @@ else:
             before_paths = {}
             after_paths = {}
 
+            # samples/ 에 SD 결과 있으면 검은 마스크 대신 그것 표시
+            samples_dir = PROJ_ROOT / "samples"
+
             for proc_id in selected_procs:
                 with st.spinner(f"{proc_id} 처리 중..."):
                     composed = compose_scfegan_input(
                         image_rgb, landmarks, proc_id,
                         size=SIZE, intensity=intensity, seed=int(seed),
                     )
-                    scfegan_out = composed["incomplete_image"]
+
+                    # ⭐ Live 모드 검은 마스크 제거:
+                    # samples/sd_final_{proc_id}.png 있으면 그것을 SD 결과로 표시
+                    # (검은 마스크 placeholder 대신 실제 SD Inpaint 사례 보여줌)
+                    sd_sample_path = samples_dir / f"sd_final_{proc_id}.png"
+                    if sd_sample_path.exists():
+                        sd_img = cv2.imread(str(sd_sample_path))
+                        scfegan_out = cv2.resize(
+                            cv2.cvtColor(sd_img, cv2.COLOR_BGR2RGB),
+                            (SIZE, SIZE),
+                        )
+                        sd_caption = "SD Inpaint (사례 결과)"
+                    else:
+                        scfegan_out = composed["incomplete_image"]
+                        sd_caption = "SD/SC-FEGAN (placeholder)"
+
                     refined = run_refinement(ref_model, scfegan_out)
 
                 st.markdown(f"### {PROC_KO.get(proc_id, proc_id)}")
                 c1, c2, c3 = st.columns(3)
-                c1.image(image_rgb, caption="Before")
-                c2.image(scfegan_out, caption="SD/SC-FEGAN (placeholder)")
-                c3.image(refined, caption="After (Refinement)")
+                c1.image(image_rgb, caption="Before (업로드 사진)")
+                c2.image(scfegan_out, caption=sd_caption)
+                c3.image(refined, caption="After (+ Refinement)")
 
                 tmpdir = Path(tempfile.gettempdir()) / "cv-final-demo"
                 tmpdir.mkdir(exist_ok=True)
