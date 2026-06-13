@@ -26,7 +26,7 @@ from pptx.util import Cm, Pt
 SAMPLES_DIR = Path(__file__).resolve().parents[2] / "samples"
 OUTPUT_DIR = Path("C:/Users/User/Desktop/발표자료_CV_Final")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-PPTX_PATH = OUTPUT_DIR / "발표슬라이드_v3_mIoU업데이트.pptx"
+PPTX_PATH = OUTPUT_DIR / "발표슬라이드_v4_최종.pptx"
 
 # ─── 색상 ───
 NAVY = RGBColor(0x1E, 0x27, 0x61)
@@ -473,19 +473,20 @@ add_footer(s, 12)
 s = add_blank_slide(prs)
 add_header(s, "04 · Failure Case", "Sample-wise mIoU · Worst-5 분석")
 add_bullet_list(s, [
-    "val 50장 sample-wise mIoU 측정",
-    "Worst-5 추출 + 실패 원인 분석",
+    "Sample-wise mIoU (5-class, 50장):",
+    "  평균: 0.6096",
+    "  표준편차: 0.0920",
+    "  최저: 0.4164 / 최고: 0.7418",
     "",
-    "공통 실패 패턴:",
-    "  • 측면 얼굴 (정면 학습)",
-    "  • 안경/머리카락 가림",
-    "  • 강한 조명 / 그림자",
+    "Best vs Worst 격차 (불안정성):",
+    "  eye Δ=0.384 ⚠ (가장 불안정)",
+    "  skin Δ=0.332, nose/mouth Δ=0.24",
+    "  bg Δ=0.128 (가장 안정)",
     "",
-    "향후 강화:",
-    "  • CutMix (Yun 2019)",
-    "  • Hard Example Mining (Lin 2017)",
-    "  • Multi-task Learning",
-], Cm(1.5), Cm(4), Cm(15), Cm(13), size=13)
+    "→ eye가 데이터 다양성에 가장 민감",
+    "",
+    "향후 강화: CutMix, Hard Example Mining",
+], Cm(1.5), Cm(4), Cm(15), Cm(13), size=12)
 img_path = SAMPLES_DIR / "worst_5_samples.png"
 add_image(s, img_path, Cm(17), Cm(4), width=Cm(16))
 add_footer(s, 13)
