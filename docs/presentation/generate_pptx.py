@@ -26,7 +26,7 @@ from pptx.util import Cm, Pt
 SAMPLES_DIR = Path(__file__).resolve().parents[2] / "samples"
 OUTPUT_DIR = Path("C:/Users/User/Desktop/발표자료_CV_Final")
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-PPTX_PATH = OUTPUT_DIR / "발표슬라이드_v2.pptx"
+PPTX_PATH = OUTPUT_DIR / "발표슬라이드_v3_mIoU업데이트.pptx"
 
 # ─── 색상 ───
 NAVY = RGBColor(0x1E, 0x27, 0x61)
@@ -296,27 +296,32 @@ add_footer(s, 5)
 s = add_blank_slide(prs)
 add_header(s, "03 · 모델 설계", "U-Net 4종 비교 · mIoU plateau")
 
-# 큰 결과 박스
+# 큰 결과 박스 (500장 평가 기준, 5-class mIoU)
 add_text(s,
-    "Baseline 0.5123  →  LM-guided 0.5487 (+3.6%p)  →  Attention 0.5499 (+0.12%p)",
+    "Baseline 0.615  →  LM-guided 0.651 (+3.7%p ⭐)  →  Attention 0.652 (+0.03%p · plateau)",
     Cm(1), Cm(3.7), Cm(32), Cm(1.2),
-    size=20, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+    size=18, bold=True, color=ACCENT, align=PP_ALIGN.CENTER)
+add_text(s,
+    "※ 5-class mIoU (unused 제외, 공식 보고용) · 500장 평가",
+    Cm(1), Cm(4.7), Cm(32), Cm(0.7),
+    size=11, color=MUTED, align=PP_ALIGN.CENTER)
 
 # 모델 비교 그래프
 img_path = SAMPLES_DIR / "model_comparison_summary.png"
 add_image(s, img_path, Cm(1), Cm(5.2), width=Cm(15))
 
 add_text(s, "주요 발견",
-         Cm(17), Cm(5), Cm(15), Cm(1), size=18, bold=True, color=NAVY)
+         Cm(17), Cm(5.5), Cm(15), Cm(1), size=18, bold=True, color=NAVY)
 add_bullet_list(s, [
-    'LM 효과: mouth +7.3%p, eye +4.5%p, nose +4.4%p',
-    "(작은 영역에 큰 효과 — Newell 2016)",
+    "LM 효과 (작은 영역):",
+    "  eye +5.45%p, mouth +4.25%p, nose +3.62%p",
+    "(Newell 2016 ECCV — Hourglass)",
     "",
-    "Attention 효과: +0.12%p (plateau)",
+    "Attention 효과: +0.03%p (plateau)",
     "(He 2019 \"Architecture < Methodology\")",
     "",
     "→ Early Stopping이 가장 효과적",
-], Cm(17), Cm(6.2), Cm(16), Cm(10), size=13)
+], Cm(17), Cm(6.7), Cm(16), Cm(10), size=12)
 add_footer(s, 6)
 
 
@@ -325,11 +330,11 @@ s = add_blank_slide(prs)
 add_header(s, "04 · 평가 지표", "5가지 비전 모델 전용 지표")
 
 metrics = [
-    ("mIoU", "mean Intersection over Union", "TP / (TP + FP + FN) 평균", "0.5499 (Attention)"),
-    ("Dice Score", "F1-score 등가 지표", "2·TP / (2·TP + FP + FN)", "0.6558"),
-    ("Confusion Matrix", "클래스별 혼동 패턴", "5×5 normalized heatmap", "diagonal 0.85+"),
-    ("Per-class IoU", "클래스별 어려움 분석", "각 클래스 IoU 추적", "eye 0.47 ↔ bg 0.89"),
-    ("Overall Accuracy", "전체 픽셀 정확도", "diag sum / total", "0.8908"),
+    ("mIoU (5-class)", "mean IoU (unused 제외, 공식)", "공식 보고용", "0.6515 (Attention)"),
+    ("mIoU (6-class)", "mean IoU (전체)", "TP / (TP+FP+FN) 평균", "0.5429"),
+    ("Dice Score", "F1-score 등가 지표", "2·TP / (2·TP+FP+FN)", "0.6499"),
+    ("Per-class IoU", "클래스별 어려움 분석", "각 클래스 IoU 추적", "eye 0.45 ↔ bg 0.89"),
+    ("Overall Accuracy", "전체 픽셀 정확도", "diag sum / total", "0.8906"),
 ]
 y = Cm(4)
 for name, desc, formula, val in metrics:
@@ -449,13 +454,13 @@ add_text(s, "주요 패턴",
          Cm(22), Cm(4), Cm(11), Cm(1), size=18, bold=True, color=NAVY)
 add_bullet_list(s, [
     "쉬움 (Big areas):",
-    "  background: 0.89",
-    "  skin: 0.64",
+    "  background: 0.889",
+    "  skin: 0.635",
     "",
     "어려움 (Small areas):",
-    "  nose: 0.69",
-    "  mouth: 0.61",
-    "  eye: 0.47 ⚠",
+    "  nose: 0.695",
+    "  mouth: 0.590",
+    "  eye: 0.448 ⚠",
     "",
     "→ Class imbalance",
     "→ 모든 모델 동일 패턴",
